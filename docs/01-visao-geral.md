@@ -14,13 +14,13 @@ miniC e uma linguagem pequena, imperativa e estruturada. Um programa `.mc` e tra
 ## Exemplo
 
 ```c
-int sum = 0;
+int soma = 0;
 
-for (int i = 1; i <= 5; i = i + 1) {
-    sum = sum + i;
+for (int indice = 1; indice <= 5; indice = indice + 1) {
+    soma = soma + indice;
 }
 
-print(sum);
+print(soma);
 ```
 
 ## Restricoes

@@ -21,20 +21,20 @@ Os arquivos gerados por Flex/Bison ficam em `build/generated/`, os objetos ficam
 ## Como Usar
 
 ```sh
-./minic examples/valid/for_sum.mc
-./minic examples/valid/for_sum.mc -o program.c
-./minic --compile examples/valid/for_sum.mc -o program.c
+./minic examples/valid/soma_com_for.mc
+./minic examples/valid/soma_com_for.mc -o program.c
+./minic --compile examples/valid/soma_com_for.mc -o program.c
 ```
 
 Modos de inspecao do compilador:
 
 ```sh
-./minic --tokens examples/valid/arithmetic.mc
-./minic --ast examples/valid/condition.mc
-./minic --symbols examples/valid/condition.mc
-./minic --tac examples/valid/for_sum.mc
-./minic --opt-tac examples/valid/optimization.mc
-./minic --analyze examples/valid/for_sum.mc
+./minic --tokens examples/valid/aritmetica.mc
+./minic --ast examples/valid/condicao.mc
+./minic --symbols examples/valid/condicao.mc
+./minic --tac examples/valid/soma_com_for.mc
+./minic --opt-tac examples/valid/otimizacao.mc
+./minic --analyze examples/valid/soma_com_for.mc
 ```
 
 ## Linguagem

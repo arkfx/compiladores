@@ -1,0 +1,2 @@
+int valor;
+bool valor;
