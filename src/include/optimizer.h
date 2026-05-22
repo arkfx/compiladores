@@ -1,5 +1,5 @@
-#ifndef MINILANG_OPTIMIZER_H
-#define MINILANG_OPTIMIZER_H
+#ifndef MINIC_OPTIMIZER_H
+#define MINIC_OPTIMIZER_H
 
 #include "ast.h"
 

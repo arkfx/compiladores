@@ -1,8 +1,12 @@
-# MiniLang Grammar
+# 03 - Analise Sintatica E AST
+
+A analise sintatica usa Bison em `src/parser.y`. O parser valida a estrutura do programa e constroi uma AST, que representa o codigo de forma mais facil de analisar e transformar.
+
+## Gramatica Simplificada
 
 ```ebnf
 program      ::= stmt_list ;
-stmt_list    ::= stmt_list statement | empty ;
+stmt_list    ::= stmt_list statement | vazio ;
 
 statement    ::= declaration ";"
                | assignment ";"
@@ -36,4 +40,10 @@ expr         ::= INT_LITERAL | BOOL_LITERAL | IDENTIFIER | "(" expr ")"
                | expr binary_operator expr ;
 ```
 
-Operator precedence is implemented in Bison from lowest to highest: `||`, `&&`, equality, comparisons, addition/subtraction, multiplication/division/modulo, unary operators.
+## Precedencia
+
+Do menor para o maior nivel: `||`, `&&`, igualdade, comparacoes, soma/subtracao, multiplicacao/divisao/modulo e operadores unarios.
+
+## AST
+
+A AST possui nos para programa, bloco, declaracao, atribuicao, controle de fluxo, entrada/saida, literais, identificadores e expressoes. Depois da analise semantica, alguns nos tambem recebem tipo inferido, nome seguro em C e endereco logico.

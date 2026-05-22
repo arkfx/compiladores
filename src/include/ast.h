@@ -1,5 +1,5 @@
-#ifndef MINILANG_AST_H
-#define MINILANG_AST_H
+#ifndef MINIC_AST_H
+#define MINIC_AST_H
 
 #include <stdio.h>
 
@@ -66,19 +66,19 @@ struct AstNode {
     union {
         struct { AstList *statements; } program;
         struct { AstList *statements; } block;
-        struct { TypeKind type; char *name; AstNode *init; } decl;
-        struct { char *name; AstNode *value; } assign;
+        struct { TypeKind type; char *name; char *c_name; int address; AstNode *init; } decl;
+        struct { char *name; char *c_name; AstNode *value; } assign;
         struct { AstNode *condition; AstNode *then_branch; AstNode *else_branch; } if_stmt;
         struct { AstNode *condition; AstNode *body; } while_stmt;
         struct { AstNode *init; AstNode *condition; AstNode *update; AstNode *body; } for_stmt;
-        struct { char *name; } scan;
+        struct { char *name; char *c_name; TypeKind target_type; } scan;
         struct { AstNode *value; } print;
         struct { BinOp op; AstNode *left; AstNode *right; } binary;
         struct { UnOp op; AstNode *operand; } unary;
         int int_value;
         int bool_value;
         char *string_value;
-        char *identifier;
+        struct { char *name; char *c_name; } identifier;
     } as;
 };
 

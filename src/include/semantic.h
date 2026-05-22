@@ -1,5 +1,5 @@
-#ifndef MINILANG_SEMANTIC_H
-#define MINILANG_SEMANTIC_H
+#ifndef MINIC_SEMANTIC_H
+#define MINIC_SEMANTIC_H
 
 #include "ast.h"
 #include "symbol_table.h"

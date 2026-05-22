@@ -3,8 +3,19 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static TypeKind analyze_node(SemanticContext *ctx, AstNode *node);
+
+static char *xstrdup(const char *s) {
+    char *copy = malloc(strlen(s) + 1);
+    if (!copy) {
+        fprintf(stderr, "out of memory\n");
+        exit(1);
+    }
+    strcpy(copy, s);
+    return copy;
+}
 
 SemanticContext *semantic_context_new(void) {
     SemanticContext *ctx = calloc(1, sizeof(SemanticContext));
@@ -78,8 +89,12 @@ static TypeKind analyze_node(SemanticContext *ctx, AstNode *node) {
             return TYPE_VOID;
 
         case AST_DECL: {
-            if (!symbol_table_declare(ctx->symbols, node->as.decl.name, node->as.decl.type, node->line)) {
+            Symbol *sym = symbol_table_declare(ctx->symbols, node->as.decl.name, node->as.decl.type, node->line);
+            if (!sym) {
                 sem_error(ctx, node->line, "variable '%s' already declared in this scope", node->as.decl.name);
+            } else {
+                node->as.decl.c_name = xstrdup(sym->c_name);
+                node->as.decl.address = sym->address;
             }
             if (node->as.decl.init) {
                 TypeKind init_type = analyze_node(ctx, node->as.decl.init);
@@ -102,6 +117,7 @@ static TypeKind analyze_node(SemanticContext *ctx, AstNode *node) {
                 node->inferred_type = TYPE_ERROR;
                 return TYPE_ERROR;
             }
+            node->as.assign.c_name = xstrdup(sym->c_name);
             if (value_type != sym->type && value_type != TYPE_ERROR) {
                 sem_error(ctx, node->line, "cannot assign %s expression to %s variable '%s'",
                           type_to_string(value_type),
@@ -142,6 +158,8 @@ static TypeKind analyze_node(SemanticContext *ctx, AstNode *node) {
             } else if (sym->type != TYPE_INT && sym->type != TYPE_BOOL) {
                 sem_error(ctx, node->line, "scan only supports int and bool variables");
             } else {
+                node->as.scan.c_name = xstrdup(sym->c_name);
+                node->as.scan.target_type = sym->type;
                 node->inferred_type = sym->type;
             }
             return TYPE_VOID;
@@ -245,12 +263,13 @@ static TypeKind analyze_node(SemanticContext *ctx, AstNode *node) {
             return TYPE_STRING_LITERAL;
 
         case AST_IDENTIFIER: {
-            Symbol *sym = symbol_table_lookup(ctx->symbols, node->as.identifier);
+            Symbol *sym = symbol_table_lookup(ctx->symbols, node->as.identifier.name);
             if (!sym) {
-                sem_error(ctx, node->line, "variable '%s' was not declared", node->as.identifier);
+                sem_error(ctx, node->line, "variable '%s' was not declared", node->as.identifier.name);
                 node->inferred_type = TYPE_ERROR;
                 return TYPE_ERROR;
             }
+            node->as.identifier.c_name = xstrdup(sym->c_name);
             node->inferred_type = sym->type;
             return sym->type;
         }

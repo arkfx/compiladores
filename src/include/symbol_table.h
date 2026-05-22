@@ -1,5 +1,5 @@
-#ifndef MINILANG_SYMBOL_TABLE_H
-#define MINILANG_SYMBOL_TABLE_H
+#ifndef MINIC_SYMBOL_TABLE_H
+#define MINIC_SYMBOL_TABLE_H
 
 #include "ast.h"
 
@@ -8,6 +8,7 @@ typedef struct Symbol {
     TypeKind type;
     int scope_depth;
     int line;
+    int address;
     int active;
     char *c_name;
     struct Symbol *next;
@@ -16,6 +17,8 @@ typedef struct Symbol {
 typedef struct {
     Symbol *head;
     int scope_depth;
+    int next_address;
+    int next_id;
 } SymbolTable;
 
 SymbolTable *symbol_table_new(void);

@@ -14,6 +14,9 @@ extern int yyparse(void);
 extern int yylex(void);
 extern AstNode *parsed_program;
 extern YYLTYPE yylloc;
+extern int yycolumn;
+extern int yylineno;
+extern int lexical_errors;
 
 typedef enum {
     MODE_CODEGEN,
@@ -34,7 +37,7 @@ typedef struct {
 
 static void usage(const char *prog) {
     fprintf(stderr,
-            "usage: %s [--tokens|--ast|--symbols|--tac|--opt-tac|--analyze|--compile] input.ml [-o output.c]\n",
+            "usage: %s [--tokens|--ast|--symbols|--tac|--opt-tac|--analyze|--compile] input.mc [-o output.c]\n",
             prog);
 }
 
@@ -101,6 +104,9 @@ static int print_tokens(const char *path) {
         perror(path);
         return 1;
     }
+    yycolumn = 1;
+    yylineno = 1;
+    lexical_errors = 0;
     int token;
     while ((token = yylex()) != 0) {
         printf("%4d:%-3d %-16s", yylloc.first_line, yylloc.first_column, token_name(token));
@@ -111,7 +117,7 @@ static int print_tokens(const char *path) {
         printf("\n");
     }
     fclose(yyin);
-    return 0;
+    return lexical_errors == 0 ? 0 : 1;
 }
 
 static AstNode *parse_file(const char *path) {
@@ -121,9 +127,12 @@ static AstNode *parse_file(const char *path) {
         return NULL;
     }
     parsed_program = NULL;
+    yycolumn = 1;
+    yylineno = 1;
+    lexical_errors = 0;
     int rc = yyparse();
     fclose(yyin);
-    if (rc != 0 || !parsed_program) return NULL;
+    if (rc != 0 || lexical_errors > 0 || !parsed_program) return NULL;
     return parsed_program;
 }
 
@@ -192,6 +201,7 @@ int main(int argc, char **argv) {
         tac_free(before);
         program = optimize_ast(program);
         TacList *after = tac_generate(program);
+        tac_optimize(after);
         puts("\nOptimized TAC:");
         tac_print(after);
         tac_free(after);
@@ -201,7 +211,10 @@ int main(int argc, char **argv) {
         tac_free(tac);
     } else {
         program = optimize_ast(program);
-        rc = codegen_c_file(program, opts.output_path);
+        TacList *tac = tac_generate(program);
+        tac_optimize(tac);
+        rc = codegen_c_file_from_tac(tac, opts.output_path);
+        tac_free(tac);
         if (rc == 0) printf("generated %s\n", opts.output_path);
         if (rc == 0 && opts.mode == MODE_COMPILE) {
             rc = compile_c_file(opts.output_path);

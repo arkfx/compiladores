@@ -59,6 +59,7 @@ AstNode *ast_new_decl(TypeKind type, char *name, AstNode *init, int line) {
     AstNode *node = new_node(AST_DECL, line);
     node->as.decl.type = type;
     node->as.decl.name = name;
+    node->as.decl.address = -1;
     node->as.decl.init = init;
     return node;
 }
@@ -97,6 +98,7 @@ AstNode *ast_new_for(AstNode *init, AstNode *condition, AstNode *update, AstNode
 AstNode *ast_new_scan(char *name, int line) {
     AstNode *node = new_node(AST_SCAN, line);
     node->as.scan.name = name;
+    node->as.scan.target_type = TYPE_ERROR;
     return node;
 }
 
@@ -144,7 +146,7 @@ AstNode *ast_new_string(char *value, int line) {
 
 AstNode *ast_new_identifier(char *name, int line) {
     AstNode *node = new_node(AST_IDENTIFIER, line);
-    node->as.identifier = name;
+    node->as.identifier.name = name;
     return node;
 }
 
@@ -211,11 +213,15 @@ void ast_print(AstNode *node, int indent) {
             }
             break;
         case AST_DECL:
-            printf("Decl %s %s\n", type_to_string(node->as.decl.type), node->as.decl.name);
+            printf("Decl %s %s", type_to_string(node->as.decl.type), node->as.decl.name);
+            if (node->as.decl.c_name) printf(" -> %s @%d", node->as.decl.c_name, node->as.decl.address);
+            printf("\n");
             if (node->as.decl.init) ast_print(node->as.decl.init, indent + 1);
             break;
         case AST_ASSIGN:
-            printf("Assign %s\n", node->as.assign.name);
+            printf("Assign %s", node->as.assign.name);
+            if (node->as.assign.c_name) printf(" -> %s", node->as.assign.c_name);
+            printf("\n");
             ast_print(node->as.assign.value, indent + 1);
             break;
         case AST_IF:
@@ -237,7 +243,9 @@ void ast_print(AstNode *node, int indent) {
             ast_print(node->as.for_stmt.body, indent + 1);
             break;
         case AST_SCAN:
-            printf("Scan %s\n", node->as.scan.name);
+            printf("Scan %s", node->as.scan.name);
+            if (node->as.scan.c_name) printf(" -> %s", node->as.scan.c_name);
+            printf("\n");
             break;
         case AST_PRINT:
             printf("Print\n");
@@ -262,7 +270,9 @@ void ast_print(AstNode *node, int indent) {
             printf("String \"%s\"\n", node->as.string_value);
             break;
         case AST_IDENTIFIER:
-            printf("Identifier %s : %s\n", node->as.identifier, type_to_string(node->inferred_type));
+            printf("Identifier %s", node->as.identifier.name);
+            if (node->as.identifier.c_name) printf(" -> %s", node->as.identifier.c_name);
+            printf(" : %s\n", type_to_string(node->inferred_type));
             break;
         case AST_EMPTY:
             printf("Empty\n");
@@ -285,10 +295,12 @@ void ast_free(AstNode *node) {
             break;
         case AST_DECL:
             free(node->as.decl.name);
+            free(node->as.decl.c_name);
             ast_free(node->as.decl.init);
             break;
         case AST_ASSIGN:
             free(node->as.assign.name);
+            free(node->as.assign.c_name);
             ast_free(node->as.assign.value);
             break;
         case AST_IF:
@@ -308,6 +320,7 @@ void ast_free(AstNode *node) {
             break;
         case AST_SCAN:
             free(node->as.scan.name);
+            free(node->as.scan.c_name);
             break;
         case AST_PRINT:
             ast_free(node->as.print.value);
@@ -323,7 +336,8 @@ void ast_free(AstNode *node) {
             free(node->as.string_value);
             break;
         case AST_IDENTIFIER:
-            free(node->as.identifier);
+            free(node->as.identifier.name);
+            free(node->as.identifier.c_name);
             break;
         default:
             break;

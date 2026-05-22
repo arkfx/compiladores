@@ -14,6 +14,33 @@ static char *xstrdup(const char *s) {
     return copy;
 }
 
+static int is_ident_char(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_';
+}
+
+static char *make_c_name(SymbolTable *table, const char *name) {
+    size_t len = strlen(name);
+    char *safe = malloc(len + 1);
+    if (!safe) {
+        fprintf(stderr, "out of memory\n");
+        exit(1);
+    }
+    for (size_t i = 0; i < len; i++) {
+        safe[i] = is_ident_char(name[i]) ? name[i] : '_';
+    }
+    safe[len] = '\0';
+
+    int size = snprintf(NULL, 0, "mc_%d_%d_%s", table->scope_depth, table->next_id, safe);
+    char *out = malloc((size_t)size + 1);
+    if (!out) {
+        fprintf(stderr, "out of memory\n");
+        exit(1);
+    }
+    snprintf(out, (size_t)size + 1, "mc_%d_%d_%s", table->scope_depth, table->next_id, safe);
+    free(safe);
+    return out;
+}
+
 SymbolTable *symbol_table_new(void) {
     SymbolTable *table = calloc(1, sizeof(SymbolTable));
     if (!table) {
@@ -21,6 +48,8 @@ SymbolTable *symbol_table_new(void) {
         exit(1);
     }
     table->scope_depth = 0;
+    table->next_address = 0;
+    table->next_id = 0;
     return table;
 }
 
@@ -79,21 +108,25 @@ Symbol *symbol_table_declare(SymbolTable *table, const char *name, TypeKind type
     sym->type = type;
     sym->scope_depth = table->scope_depth;
     sym->line = line;
+    sym->address = table->next_address++;
     sym->active = 1;
-    sym->c_name = xstrdup(name);
+    sym->c_name = make_c_name(table, name);
+    table->next_id++;
     sym->next = table->head;
     table->head = sym;
     return sym;
 }
 
 void symbol_table_print(SymbolTable *table) {
-    printf("%-20s %-8s %-8s %-8s\n", "name", "type", "scope", "line");
-    printf("%-20s %-8s %-8s %-8s\n", "----", "----", "-----", "----");
+    printf("%-16s %-8s %-8s %-8s %-8s %s\n", "name", "type", "scope", "addr", "line", "c_name");
+    printf("%-16s %-8s %-8s %-8s %-8s %s\n", "----", "----", "-----", "----", "----", "------");
     for (Symbol *sym = table->head; sym; sym = sym->next) {
-        printf("%-20s %-8s %-8d %-8d\n",
+        printf("%-16s %-8s %-8d %-8d %-8d %s\n",
                sym->name,
                type_to_string(sym->type),
                sym->scope_depth,
-               sym->line);
+               sym->address,
+               sym->line,
+               sym->c_name);
     }
 }

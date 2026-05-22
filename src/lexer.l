@@ -8,6 +8,7 @@
 #include "parser.tab.h"
 
 int yycolumn = 1;
+int lexical_errors = 0;
 
 static char *copy_text(const char *text, int len) {
     char *copy = malloc((size_t)len + 1);
@@ -85,6 +86,7 @@ static char *unquote_string(const char *text) {
 [{}();=+\-*/%<>!]       { return yytext[0]; }
 
 .                       {
+                            lexical_errors++;
                             fprintf(stderr, "lexical error at line %d, column %d: unexpected character '%s'\n",
                                     yylineno, yycolumn, yytext);
                         }
