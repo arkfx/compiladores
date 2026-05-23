@@ -21,9 +21,9 @@ Os arquivos gerados por Flex/Bison ficam em `build/generated/`, os objetos ficam
 ## Como Usar
 
 ```sh
-./minic examples/valid/soma_com_for.mc
-./minic examples/valid/soma_com_for.mc -o program.c
-./minic --compile examples/valid/soma_com_for.mc -o program.c
+./minic examples/valid/aritmetica.mc
+./minic examples/valid/aritmetica.mc -o program.c
+./minic --compile examples/valid/aritmetica.mc -o program.c
 ```
 
 Modos de inspecao do compilador:

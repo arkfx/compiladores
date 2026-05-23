@@ -90,7 +90,7 @@ AstNode *optimize_ast(AstNode *node) {
             node->as.for_stmt.update = optimize_ast(node->as.for_stmt.update);
             node->as.for_stmt.body = optimize_ast(node->as.for_stmt.body);
             if (is_bool_literal(node->as.for_stmt.condition) && !node->as.for_stmt.condition->as.bool_value) {
-                return ast_new_empty(node->line);
+                return node->as.for_stmt.init;
             }
             return node;
 
